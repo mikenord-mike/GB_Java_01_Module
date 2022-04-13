@@ -22,4 +22,17 @@ public class HomeWorkApp {
             System.out.println("Сумма отрицательная");
         }
     }
+
+    private static void printColor() {
+        int value = 17;
+
+        if (value <= 0) {
+            System.out.println("Красный");
+        } else if (value <= 100) {
+            System.out.println("Желтый");
+        } else {
+            System.out.println("Зеленый");
+        }
+    }
+
 }
