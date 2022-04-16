@@ -4,6 +4,7 @@ public class HomeWorkApp02 {
 
     public static void main(String[] args) {
         System.out.println(sumCheck(5, 11));
+        signNumberCheck(-4);
     }
 
     public static boolean sumCheck(int a, int b) {
@@ -11,4 +12,11 @@ public class HomeWorkApp02 {
         return sum >= 10 && sum <= 20;
     }
 
+    public static void signNumberCheck(int a) {
+        if (a < 0) {
+            System.out.println("The number is negative");
+        } else {
+            System.out.println("The number is positive");
+        }
+    }
 }
