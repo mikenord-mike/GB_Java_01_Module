@@ -6,6 +6,7 @@ public class HomeWorkApp02 {
         System.out.println(sumCheck(5, 11));
         signNumberPrint(-4);
         System.out.println(negativeNumberCheck(0));
+        printSeveralTimes("GB Java Test", 10);
     }
 
     public static boolean sumCheck(int a, int b) {
@@ -23,5 +24,11 @@ public class HomeWorkApp02 {
 
     public static boolean negativeNumberCheck(int a) {
         return a < 0;
+    }
+
+    public static void printSeveralTimes(String s, int n) {
+        for (int i = 0; i < n; i++) {
+            System.out.println(s);
+        }
     }
 }
