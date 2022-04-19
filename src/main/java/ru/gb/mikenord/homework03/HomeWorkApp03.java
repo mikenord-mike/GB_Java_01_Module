@@ -39,6 +39,20 @@ public class HomeWorkApp03 {
         // task 05 check
         System.out.println("t05 " + Arrays.toString(fillArray(90, 654)));
 
+        // task 06
+        // Not a very precise task condition - the array type is not specified. I solved it for integer type
+        int[] e = {5, 6, 9, 1, 456, -79, 4, 3, 2, 7};
+        int min = 0, max = 0;
+        for (int i = 0; i < e.length; i++) {
+            if (i == 0) {
+                min = e[i];
+                max = e[i];
+            } else {
+                min = min > e[i] ? e[i] : min;
+                max = max < e[i] ? e[i] : max;
+            }
+        }
+        System.out.printf("min = %d, max = %d", min, max);
     }
 
     // task 05
