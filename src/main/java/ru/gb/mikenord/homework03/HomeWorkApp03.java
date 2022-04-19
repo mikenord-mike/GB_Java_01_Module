@@ -52,7 +52,10 @@ public class HomeWorkApp03 {
                 max = max < e[i] ? e[i] : max;
             }
         }
-        System.out.printf("min = %d, max = %d", min, max);
+        System.out.printf("min = %d, max = %d\n", min, max);
+
+        // task 07 check
+        System.out.println(sumRightLeftArrayPartCheck(new int[]{-12, 1, 1, 2, -8}));
     }
 
     // task 05
@@ -60,5 +63,22 @@ public class HomeWorkApp03 {
         int[] result = new int[len];
         Arrays.fill(result, initialValue);
         return result;
+    }
+
+    // task 07
+    public static boolean sumRightLeftArrayPartCheck(int[] f) {
+        for (int i = 1; i < f.length; i++) {
+            int sumLeft = 0, sumRight = 0;
+            for (int j = 0; j < i; j++) {
+                sumLeft += f[j];
+            }
+            for (int j = i; j < f.length; j++) {
+                sumRight += f[j];
+            }
+            if (sumLeft == sumRight) {
+                return true;
+            }
+        }
+        return false;
     }
 }
