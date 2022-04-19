@@ -6,7 +6,8 @@ public class HomeWorkApp02 {
         System.out.println(sumCheck(5, 11));
         signNumberPrint(-4);
         System.out.println(negativeNumberCheck(0));
-        printSeveralTimes("GB Java Test", 10);
+        printSeveralTimes("GB Java Test", 3);
+        System.out.println(leapYearCheck(400));
     }
 
     public static boolean sumCheck(int a, int b) {
@@ -30,5 +31,12 @@ public class HomeWorkApp02 {
         for (int i = 0; i < n; i++) {
             System.out.println(s);
         }
+    }
+
+    public static boolean leapYearCheck(int year) {
+        if (year % 4 == 0) {
+            return !(year % 100 == 0 && year % 400 !=0);
+        }
+        return false;
     }
 }
