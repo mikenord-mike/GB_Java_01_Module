@@ -10,6 +10,7 @@ public class HomeWorkApp03 {
         for (int i = 0; i < a.length; i++) {
             a[i] = a[i] == 0 ? 1 : 0;
         }
+            // task 01 test
         System.out.println("t01 " + Arrays.toString(a));
 
             // task 02
@@ -17,6 +18,7 @@ public class HomeWorkApp03 {
         for (int i = 0; i < b.length; i++) {
             b[i] = i + 1;
         }
+            // task 02 test
         System.out.println("t02 " + Arrays.toString(b));
 
             // task 03
@@ -26,6 +28,7 @@ public class HomeWorkApp03 {
                 c[i] *= 2;
             }
         }
+            // task 03 test
         System.out.println("t03 " + Arrays.toString(c));
 
             // task 04
@@ -34,9 +37,10 @@ public class HomeWorkApp03 {
             d[i][i] = 1;
             d[d.length - i - 1][i] = 1;
         }
+            // task 04 test
         System.out.println("t04 " + Arrays.deepToString(d));
 
-            // task 05 check
+            // task 05 test
         System.out.println("t05 " + Arrays.toString(fillArray(90, 654)));
 
             // task 06
@@ -52,14 +56,15 @@ public class HomeWorkApp03 {
                 max = max < e[i] ? e[i] : max;
             }
         }
+            // task 06 test
         System.out.printf("t06 min = %d, max = %d\n", min, max);
 
-            // task 07 check
-        System.out.println("t07 " + sumRightLeftArrayPartCheck(new int[]{-12, 1, 1, 2, -8}));
+            // task 07 test
+        System.out.println("t07 " + isSumRightLeftPartsOfArrayEqual(new int[]{-12, 1, 1, 2, -8}));
 
-            // task 08 check
+            // task 08 test
         int[] h = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-        arrayShift(h, -2);
+        shiftArray(h, -2);
         System.out.println("t08 " + Arrays.toString(h));
 
     }
@@ -72,7 +77,7 @@ public class HomeWorkApp03 {
     }
 
         // task 07
-    public static boolean sumRightLeftArrayPartCheck(int[] f) {
+    public static boolean isSumRightLeftPartsOfArrayEqual(int[] f) {
         for (int i = 1; i < f.length; i++) {
             int sumLeft = 0, sumRight = 0;
             for (int j = 0; j < i; j++) {
@@ -89,7 +94,7 @@ public class HomeWorkApp03 {
     }
 
         // task 08
-    public static void arrayShift(int[] g, int n) {
+    public static void shiftArray(int[] g, int n) {
         n %= g.length;
         if (n < 0) {
             n += g.length;
