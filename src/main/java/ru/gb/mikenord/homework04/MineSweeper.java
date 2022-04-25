@@ -3,10 +3,11 @@ package ru.gb.mikenord.homework04;
 import java.util.Random;
 import java.util.Scanner;
 
-public class MineSweeperOriginal {
+public class MineSweeper {
     private static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_BLACK = "\u001B[30m";
     private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_BRIGHT_RED = "\u001B[91m";
     private static final String ANSI_GREEN = "\u001B[32m";
     private static final String ANSI_YELLOW = "\u001B[33m";
     private static final String ANSI_BLUE = "\u001B[34m";
@@ -25,7 +26,7 @@ public class MineSweeperOriginal {
     private static final int CELL_FLAG = -1;
 
     public static void main(String[] args) {
-        final boolean isWin = play();
+        boolean isWin = play();
         if (isWin) {
             System.out.println("Поздравляю!\nВы выиграли!");
         } else {
@@ -43,10 +44,14 @@ public class MineSweeperOriginal {
             win = isWin(moves);
         } while (isPassMove && !win);
 
+        //  print of the winning field
+        if (isPassMove) {
+            printBoard(board, moves);
+        }
         return isPassMove;
     }
 
-    private static boolean isWin(final int[][] moves) {
+    private static boolean isWin(int[][] moves) {
         int openCell = 0;
         for (int[] lines : moves) {
             for (int cell : lines) {
@@ -58,8 +63,8 @@ public class MineSweeperOriginal {
         return openCell == HEIGHT * WIDTH - MINE_COUNT;
     }
 
-    private static boolean move(final int[][] board, final int[][] moves) {
-        final Scanner scanner = new Scanner(System.in);
+    private static boolean move(int[][] board, int[][] moves) {
+        Scanner scanner = new Scanner(System.in);
         printBoard(board, moves);
         while (true) {
             System.out.print("Ваш ход (строка, столбец, флаг, например А1*): ");
@@ -72,30 +77,67 @@ public class MineSweeperOriginal {
                     return true;
                 }
                 if (isMine(board[line][row])) {
+                    System.out.println("Мина " + (char) ('A' + row) + line + " взорвалась!!!");
                     return false;
                 }
-                moves[line][row] = CELL_OPEN;
+                //  when re-opening an open non-empty cell - imitation of a double click in the original version...
+                //  all closed cells around open, except those marked with a flag
+                if (moves[line][row] == CELL_OPEN) {
+                    for (int i = line - 1; i <= line + 1; i++) {
+                        for (int j = row - 1; j <= row + 1; j++) {
+                            if (i >= 0 && i < HEIGHT && j >= 0 && j < WIDTH && moves[i][j] != CELL_FLAG) {
+                                moves[i][j] = CELL_OPEN;
+                                if (isMine(board[i][j])) {
+                                    System.out.println("Мина " + (char) ('A' + j) + i + " взорвалась!!!");
+                                    return false;
+                                }
+                                if (board[i][j] == EMPTY) {
+                                    openEmptyFields(board, moves, i, j);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    moves[line][row] = CELL_OPEN;
+                    if (board[line][row] == EMPTY) {
+                        openEmptyFields(board, moves, line, row);
+                    }
+                }
                 return true;
             }
             System.out.println("Неправильный ввод");
         }
     }
 
-    private static void printBoard(final int[][] board, final int[][] moves) {
-        System.out.print("   ");
+    //  clusters of empty cells are checked and opened by recursion
+    private static void openEmptyFields(int[][] board, int[][] moves, int x, int y) {
+        for (int i = x - 1; i <= x + 1; i++) {
+            for (int j = y - 1; j <= y + 1; j++) {
+                if (i >= 0 && i < HEIGHT && j >= 0 && j < WIDTH && moves[i][j] != CELL_OPEN) {
+                    moves[i][j] = CELL_OPEN;
+                    if (board[i][j] == EMPTY) {
+                        openEmptyFields(board, moves, i, j);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void printBoard(int[][] board, int[][] moves) {
+        System.out.print("    ");
         for (char i = 'A'; i < 'A' + WIDTH; i++) {
             System.out.print(" " + i);
         }
         System.out.println();
         for (int i = 0; i < HEIGHT; i++) {
-            System.out.printf("%3d", i);
+            System.out.printf("%3d ", i);
             for (int j = 0; j < WIDTH; j++) {
                 if (moves[i][j] == CELL_CLOSE) {
                     System.out.print("[]");
                     continue;
                 }
                 if (moves[i][j] == CELL_FLAG) {
-                    System.out.print(" P");
+                    System.out.print(ANSI_BRIGHT_RED + " P" + ANSI_RESET);
                     continue;
                 }
                 String cellColor = getColorCode(board[i][j]);
@@ -133,13 +175,8 @@ public class MineSweeperOriginal {
         return null;
     }
 
+    //  in this case, processing of all cells is not required to count the number of visible mines:
     private static int[][] generateBoard() {
-        final int[][] board = fillMines();
-        calculateMines(board);
-        return board;
-    }
-
-    private static int[][] fillMines() {
         int[][] board = new int[HEIGHT][WIDTH];
         int mines = MINE_COUNT;
         final Random random = new Random();
@@ -149,38 +186,19 @@ public class MineSweeperOriginal {
                 continue;
             }
             board[x][y] = MINE;
+            for (int i = x - 1; i <= x + 1; i++) {
+                for (int j = y - 1; j <= y + 1; j++) {
+                    if (i >= 0 && i < HEIGHT && j >= 0 && j < WIDTH && !isMine(board[i][j])) {
+                        board[i][j]++;
+                    }
+                }
+            }
             mines--;
         }
         return board;
     }
 
-    private static void calculateMines(int[][] board) {
-        for (int i = 0; i < HEIGHT; i++) {
-            for (int j = 0; j < WIDTH; j++) {
-                if (isMine(board[i][j])) {
-                    continue;
-                }
-                board[i][j] = getMinesCountAroundCell(board, i, j);
-            }
-        }
-    }
-
     private static boolean isMine(int i) {
         return i == MINE;
-    }
-
-    private static int getMinesCountAroundCell(int[][] board, int line, int row) {
-        int mCount = 0;
-        for (int i = line - 1; i <= line + 1; i++) {
-            for (int j = row - 1; j <= row + 1; j++) {
-                if (i < 0 || i >= HEIGHT || j < 0 || j >= WIDTH) {
-                    continue;
-                }
-                if (isMine(board[i][j])) {
-                    mCount++;
-                }
-            }
-        }
-        return mCount;
     }
 }
