@@ -7,6 +7,8 @@ public class TicTacToe {
     public static final char DOT_EMPTY = '*';
     public static final char DOT_X = 'X';
     public static final char DOT_O = 'O';
+    public static String winX_Sequence = "";
+    public static String winO_Sequence = "";
 
     private static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_RED = "\u001B[31m";
@@ -21,7 +23,7 @@ public class TicTacToe {
         initMap();
         setTestMap();
         printMap();
-        System.out.println(isWin());
+        System.out.println(checkMap());
     }
 
     public static void initMap() {
@@ -29,6 +31,8 @@ public class TicTacToe {
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
                 map[i][j] = DOT_EMPTY;
+                winX_Sequence += DOT_X;
+                winO_Sequence += DOT_O;
             }
         }
 
@@ -56,72 +60,25 @@ public class TicTacToe {
         map[4][3] = DOT_O;
     }
 
-    public static boolean isWin() {
-        boolean result = false;
-        for (int i = 0; i < SIZE - DOTS_TO_WIN + 1; i++) {
-            for (int j = 0; j < SIZE - DOTS_TO_WIN + 1; j++) {
-                result |= isWin_DotsToWinLength(i, j);
-            }
+    public static int checkMap() {
+        boolean win = false;
+        boolean fullMap = true;
+        for (int i = 0; i < SIZE; i++) {
+            String currentView = checkVisibleFromXY(i, 0);
+            currentView += checkVisibleFromXY(0, i);
+            currentView += checkVisibleFromXY(i, SIZE - 1);
+            win |= currentView.contains(winX_Sequence);
+            win |= currentView.contains(winO_Sequence);
+            fullMap &= currentView.contains(String.valueOf(DOT_EMPTY));
         }
-        return result;
+        return win ? 1 : fullMap ? 2 : 0;
     }
 
-    //  the shift was required due to the condition of task 3:
-    //              DOTS_TO_WIN < SIZE
-    public static boolean isWin_DotsToWinLength(int shiftX, int shiftY) {
-        boolean diagLeft = map[shiftX][shiftY] != DOT_EMPTY;
-        boolean diagRigth = map[shiftX][DOTS_TO_WIN - 1 + shiftY] != DOT_EMPTY;
+    private static String checkVisibleFromXY(int x, int y) {
 
-        for (int i = 0; i < DOTS_TO_WIN; i++) {
-            if (i > 0 && (diagLeft || diagRigth)) {
-                diagLeft &= map[i + shiftX][i + shiftY] == map[i - 1 + shiftX][i - 1 + shiftY];
-                diagRigth &= map[i + shiftX][DOTS_TO_WIN - 1 - i + shiftY] == map[i - 1 + shiftX][DOTS_TO_WIN - i + shiftY];
-            }
-            boolean col = map[i + shiftX][shiftY] != DOT_EMPTY;
-            col &= map[i + shiftX][shiftY] == map[i + shiftX][DOTS_TO_WIN - 1 + shiftY];
-            boolean row = map[shiftX][i + shiftY] != DOT_EMPTY;
-            row &= map[shiftX][i + shiftY] == map[DOTS_TO_WIN - 1 + shiftX][i + shiftY];
-            if (col || row) {
-                for (int j = 1; j < DOTS_TO_WIN - 1; j++) {
-                    col &= map[i + shiftX][j + shiftY] == map[i + shiftX][j - 1 + shiftY];
-                    row &= map[j + shiftX][i + shiftY] == map[j - 1 + shiftX][i + shiftY];
-                }
-            }
-            if (col || row) {
-                return true;
-            }
-        }
-        return diagLeft || diagRigth;
+        return "";
     }
 
-    //  if it were always DOTS_TO_WIN = SIZE, then instead of "isWin() + isWin_DotsToWinLength(int shiftX, int shiftY)"
-    //  it would be...
-    //
-    //    public static boolean isWin() {
-    //        boolean diagLeft = map[0][0] != DOT_EMPTY;
-    //        boolean diagRigth = map[0][SIZE - 1] != DOT_EMPTY;
-    //
-    //        for (int i = 0; i < SIZE; i++) {
-    //            if (i > 0 && (diagLeft || diagRigth)) {
-    //                diagLeft &= map[i][i] == map[i - 1][i - 1];
-    //                diagRigth &= map[i][SIZE - 1 - i] == map[i - 1][SIZE - i];
-    //            }
-    //            boolean col = map[i][0] != DOT_EMPTY;
-    //            col &= map[i][0] == map[i][SIZE - 1];
-    //            boolean row = map[0][i] != DOT_EMPTY;
-    //            row &= map[0][i] == map[SIZE - 1][i];
-    //            if (col || row) {
-    //                for (int j = 1; j < SIZE - 1; j++) {
-    //                    col &= map[i][j] == map[i][j - 1];
-    //                    row &= map[j][i] == map[j - 1][i];
-    //                }
-    //            }
-    //            if (col || row) {
-    //                return true;
-    //            }
-    //        }
-    //        return diagLeft || diagRigth;
-    //    }
 
     public static void printMap() {
         String line = "    +";
