@@ -5,7 +5,6 @@ import java.util.Scanner;
 
 public class MineSweeper {
     private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_BLACK = "\u001B[30m";
     private static final String ANSI_RED = "\u001B[31m";
     private static final String ANSI_BRIGHT_RED = "\u001B[91m";
     private static final String ANSI_GREEN = "\u001B[32m";
@@ -39,12 +38,13 @@ public class MineSweeper {
         int[][] moves = new int[HEIGHT][WIDTH];
         boolean isPassMove;
         boolean win;
+        System.out.println(ANSI_YELLOW+ "\nВ данной версии:\n - при вводе координат открытой клетки с числом - все соседние клетки, кроме\n   отмеченных флагом, ОТКРЫВАЮТСЯ (имитация двойного щелчка мыши в оригинале игры)\n" + ANSI_RESET);
         do {
             isPassMove = move(board, moves);
             win = isWin(moves);
         } while (isPassMove && !win);
 
-        //  print of the winning field
+        //  print of the winning board
         if (isPassMove) {
             printBoard(board, moves);
         }
@@ -77,9 +77,10 @@ public class MineSweeper {
                     return true;
                 }
                 if (isMine(board[line][row])) {
-                    System.out.println("Мина " + (char) ('A' + row) + line + " взорвалась!!!");
+                    System.out.println("Мина " + (char) ('A' + row) + (line + 1) + " взорвалась!!!");
                     return false;
                 }
+
                 //  when re-opening an open non-empty cell - imitation of a double click in the original version...
                 //  all closed cells around open, except those marked with a flag
                 if (moves[line][row] == CELL_OPEN) {
@@ -88,7 +89,7 @@ public class MineSweeper {
                             if (i >= 0 && i < HEIGHT && j >= 0 && j < WIDTH && moves[i][j] != CELL_FLAG) {
                                 moves[i][j] = CELL_OPEN;
                                 if (isMine(board[i][j])) {
-                                    System.out.println("Мина " + (char) ('A' + j) + i + " взорвалась!!!");
+                                    System.out.println("Мина " + (char) ('A' + j) + (i + 1) + " взорвалась!!!");
                                     return false;
                                 }
                                 if (board[i][j] == EMPTY) {
@@ -175,7 +176,7 @@ public class MineSweeper {
         return null;
     }
 
-    //  in this case, processing of all cells is not required to count the number of visible mines:
+    //  in this case, processing of all cells is not required to count the number of adjacent mines:
     private static int[][] generateBoard() {
         int[][] board = new int[HEIGHT][WIDTH];
         int mines = MINE_COUNT;
