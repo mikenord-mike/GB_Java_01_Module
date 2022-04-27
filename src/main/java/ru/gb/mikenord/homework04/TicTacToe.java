@@ -180,9 +180,9 @@ public class TicTacToe {
                         currentWeight += SIZE * SIZE * SIZE;
                     }
 
-                    if (currentWeight > maxWeight && ai[6] <= minDistance && ai[6] > 0 || currentWeight == maxWeight && ai[6] < minDistance && ai[6] > 0) {
+                    if (currentWeight > maxWeight && ai[6] <= minDistance  || currentWeight == maxWeight && ai[6] < minDistance ) {
                         maxWeight = currentWeight;
-                        if (ai[6] < minDistance && ai[6] > 0) {
+                        if (ai[6] < minDistance) {
                             minDistance = ai[6];
                         }
                         x = i;
