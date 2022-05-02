@@ -109,19 +109,19 @@ public class TicTacToe {
                     String currentView = checkVisibleFromXY(i, j);
 
                     //  number of visible crosses
-                    ai[0] = count_X_InString(currentView, DOT_X);
+                    ai[0] = count_X_InString(currentView);
 
                     //   number of visible crosses in each direction and count minimal distance to cross
                     String[] views = currentView.split(" ");
 
-                    ai[1] = count_X_InString(views[0], DOT_X);
+                    ai[1] = count_X_InString(views[0]);
                     if (ai[1] > 0) {
                         int tmpDist = minDistanceToX(views[0]);
                         if (ai[6] > tmpDist && tmpDist > 0) {
                             ai[6] = tmpDist;
                         }
                     }
-                    ai[2] = count_X_InString(views[1], DOT_X);
+                    ai[2] = count_X_InString(views[1]);
                     if (ai[2] > 0) {
                         int tmpDist = minDistanceToX(views[1]);
                         if (ai[6] > tmpDist && tmpDist > 0) {
@@ -129,7 +129,7 @@ public class TicTacToe {
                         }
                     }
                     if (views.length > 2) {
-                        ai[3] = count_X_InString(views[2], DOT_X);
+                        ai[3] = count_X_InString(views[2]);
                         if (ai[3] > 0) {
                             int tmpDist = minDistanceToX(views[2]);
                             if (ai[6] > tmpDist && tmpDist > 0) {
@@ -138,7 +138,7 @@ public class TicTacToe {
                         }
                     }
                     if (views.length > 3) {
-                        ai[4] = count_X_InString(views[3], DOT_X);
+                        ai[4] = count_X_InString(views[3]);
                         if (ai[4] > 0) {
                             int tmpDist = minDistanceToX(views[3]);
                             if (ai[6] > tmpDist && tmpDist > 0) {
@@ -195,10 +195,10 @@ public class TicTacToe {
         System.out.println("Компьютер походил в точку " + (char) ('A' + y) + (x + 1));
     }
 
-    public static int count_X_InString(String s, char item) {
+    public static int count_X_InString(String s) {
         int result = 0;
         for (int k = 0; k < s.length(); k++) {
-            if (s.charAt(k) == item) {
+            if (s.charAt(k) == DOT_X) {
                 result++;
             }
         }
@@ -211,21 +211,17 @@ public class TicTacToe {
         }
 
         int checked = view.indexOf(DOT_CHECKED);
-        int tmpDist01 = SIZE, tmpDist02 = SIZE;
-        if (checked != 0) {
-            int tmpIndex = view.substring(0, checked).lastIndexOf(DOT_X);
-            if (tmpIndex >= 0) {
-                tmpDist01 = checked - tmpIndex;
-            }
-        }
-        if (checked != view.length() - 1) {
-            int tmpIndex = view.substring(checked + 1, view.length() - 1).indexOf(DOT_X);
-            if (tmpIndex >= 0) {
-                tmpDist02 = tmpIndex - checked + 1;
+        int result=view.length();
+        for (int i = 0; i < view.length(); i++) {
+            if (view.charAt(i)==DOT_X){
+                int tmpDist=Math.abs(checked-i);
+                if (result>tmpDist) {
+                    result=tmpDist;
+                }
             }
         }
 
-        return Math.min(Math.abs(tmpDist01), Math.abs(tmpDist02));
+        return result;
     }
 
 
@@ -239,7 +235,7 @@ public class TicTacToe {
             currentView += " " + checkVisibleFromXY(i, SIZE - 1);   // passing through the cells of the last column
             win |= currentView.contains(winX_Sequence);
             win |= currentView.contains(winO_Sequence);
-            fullMap &= count_X_InString(currentView, DOT_EMPTY) == 0;
+            fullMap &= count_X_InString(currentView) == 0;
         }
         return win ? 1 : fullMap ? 2 : 0;
     }
@@ -302,7 +298,6 @@ public class TicTacToe {
 
         return result;
     }
-
 
     public static void printMap() {
         String line = "    +";
