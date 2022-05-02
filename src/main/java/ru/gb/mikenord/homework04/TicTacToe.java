@@ -4,8 +4,8 @@ import java.util.Scanner;
 
 public class TicTacToe {
     public static char[][] map;
-    public static final int SIZE = 3;
-    public static final int DOTS_TO_WIN = 3;
+    public static final int SIZE = 5;
+    public static final int DOTS_TO_WIN = 4;
     public static final char DOT_EMPTY = '*';
     public static final char DOT_CHECKED = '+';
     public static final char DOT_X = 'X';
@@ -88,8 +88,7 @@ public class TicTacToe {
     }
 
     public static void aiTurn() {
-        int x = 0, y = 0, maxWeight = 0, minDistance = SIZE - 1;
-
+        int x = 0, y = 0, maxWeight = 0;
 
         //  empty cells are weighted according to the number of visible crosses and the maximum sequences
         for (int i = 0; i < SIZE; i++) {
@@ -102,26 +101,27 @@ public class TicTacToe {
                         ai[3] - visible crosses in the forward diagonal (optional);
                         ai[4] - visible crosses in the reverse diagonal (optional);
                         ai[5] - maximum sequence of crosses among visible;
-                        ai[6] - minimum distance to the nearest cross;
+                        ai[6] - sum of a minimum distances to the nearest crosses;
+                        ai[7] - maximum sequence of zeroes among visible;
                     */
-                    int[] ai = new int[7];
+                    int[] ai = new int[8];
                     ai[6] = SIZE - 1;
                     String currentView = checkVisibleFromXY(i, j);
 
                     //  number of visible crosses
-                    ai[0] = count_X_InString(currentView);
+                    ai[0] = countInString(currentView, DOT_X);
 
                     //   number of visible crosses in each direction and count minimal distance to cross
                     String[] views = currentView.split(" ");
 
-                    ai[1] = count_X_InString(views[0]);
+                    ai[1] = countInString(views[0], DOT_X);
                     if (ai[1] > 0) {
                         int tmpDist = minDistanceToX(views[0]);
                         if (ai[6] > tmpDist && tmpDist > 0) {
                             ai[6] = tmpDist;
                         }
                     }
-                    ai[2] = count_X_InString(views[1]);
+                    ai[2] = countInString(views[1], DOT_X);
                     if (ai[2] > 0) {
                         int tmpDist = minDistanceToX(views[1]);
                         if (ai[6] > tmpDist && tmpDist > 0) {
@@ -129,7 +129,7 @@ public class TicTacToe {
                         }
                     }
                     if (views.length > 2) {
-                        ai[3] = count_X_InString(views[2]);
+                        ai[3] = countInString(views[2], DOT_X);
                         if (ai[3] > 0) {
                             int tmpDist = minDistanceToX(views[2]);
                             if (ai[6] > tmpDist && tmpDist > 0) {
@@ -138,7 +138,7 @@ public class TicTacToe {
                         }
                     }
                     if (views.length > 3) {
-                        ai[4] = count_X_InString(views[3]);
+                        ai[4] = countInString(views[3], DOT_X);
                         if (ai[4] > 0) {
                             int tmpDist = minDistanceToX(views[3]);
                             if (ai[6] > tmpDist && tmpDist > 0) {
@@ -147,44 +147,55 @@ public class TicTacToe {
                         }
                     }
 
-                    //  maximum sequence of visible crosses
+                    //  maximum sequence of visible crosses and zeroes
                     if (ai[0] > 1) {
                         for (int k = DOTS_TO_WIN - 1; k > 1; k--) {
-                            String currentSequence = winX_Sequence.substring(0, k);
-                            if (currentView.contains(currentSequence)) {
+                            String current_X_Sequence = winX_Sequence.substring(0, k);
+                            if (currentView.contains(current_X_Sequence)) {
                                 ai[5] = k;
-                                break;
+                            }
+                            String current_O_Sequence = winO_Sequence.substring(0, k);
+                            if (currentView.contains(current_O_Sequence)) {
+                                ai[7] = k;
                             }
                         }
                     }
 
                     //  weight distribution by parameters
                     int currentWeight = 0;
-                    currentWeight += ai[0];                                 // 1:1  total number of crosses
+                    currentWeight += ai[0] * ai[0];                         // n*n for total number of crosses
                     currentWeight += ai[1] == ai[0] ? ai[1] * 2 : ai[1];    // 2:1 if all crosses in one direction
                     currentWeight += ai[2] == ai[0] ? ai[2] * 2 : ai[2];    // 2:1 if all crosses in one direction
                     currentWeight += ai[3] == ai[0] ? ai[3] * 2 : ai[3];    // 2:1 if all crosses in one direction
                     currentWeight += ai[4] == ai[0] ? ai[4] * 2 : ai[4];    // 2:1 if all crosses in one direction
+                    currentWeight += views.length * views.length;           // + n*n if non-empty directions > 1
+                    currentWeight += ai[5] * 2;                             // 2:1 for maximum sequence;
 
-                    currentWeight += ai[5] * 2;                             // n*n for maximum sequence;
+                    //  add weight for the minimum distance to the nearest crosses
+                    currentWeight += (SIZE - ai[6]) * SIZE * SIZE;
 
+                    // add weight n*n if all visible crosses in one sequence
                     if (ai[5] == ai[0]) {
-                        currentWeight += ai[5] * ai[5];   // + n*n if all visible crosses in one sequence
+                        currentWeight += ai[5] * ai[5];
                     }
 
-                    /*  if one of the directions contains a pre-dinner situation (DOTS_TO_WIN - 1),
-                        this cell should become an unambiguous choice of the AI
-                     */
-                    int xmin = DOTS_TO_WIN - 1;
-                    if (ai[1] == xmin || ai[2] == xmin || ai[3] == xmin || ai[4] == xmin) {
-                        currentWeight += SIZE * SIZE * SIZE;
+                    int preWinner = DOTS_TO_WIN - 1;
+                    /*  if one of the directions contains a "X" pre-win situation (DOTS_TO_WIN - 1),
+                        then the priority of the cell is very high
+                    */
+                    if (ai[1] == preWinner || ai[2] == preWinner || ai[3] == preWinner || ai[4] == preWinner) {
+                        currentWeight *= SIZE * SIZE * SIZE;
                     }
 
-                    if (currentWeight > maxWeight && ai[6] <= minDistance  || currentWeight == maxWeight && ai[6] < minDistance ) {
+                    /*  but if one of the directions contains a "O" pre-win situation (DOTS_TO_WIN - 1),
+                        then the priority of the cell is the highest
+                    */
+                    if (ai[7] == preWinner) {
+                        currentWeight = Integer.MAX_VALUE;
+                    }
+
+                    if (currentWeight > maxWeight) {
                         maxWeight = currentWeight;
-                        if (ai[6] < minDistance) {
-                            minDistance = ai[6];
-                        }
                         x = i;
                         y = j;
                     }
@@ -195,10 +206,10 @@ public class TicTacToe {
         System.out.println("Компьютер походил в точку " + (char) ('A' + y) + (x + 1));
     }
 
-    public static int count_X_InString(String s) {
+    public static int countInString(String s, char item) {
         int result = 0;
         for (int k = 0; k < s.length(); k++) {
-            if (s.charAt(k) == DOT_X) {
+            if (s.charAt(k) == item) {
                 result++;
             }
         }
@@ -211,12 +222,12 @@ public class TicTacToe {
         }
 
         int checked = view.indexOf(DOT_CHECKED);
-        int result=view.length();
+        int result = view.length();
         for (int i = 0; i < view.length(); i++) {
-            if (view.charAt(i)==DOT_X){
-                int tmpDist=Math.abs(checked-i);
-                if (result>tmpDist) {
-                    result=tmpDist;
+            if (view.charAt(i) == DOT_X) {
+                int tmpDist = Math.abs(checked - i);
+                if (result > tmpDist) {
+                    result = tmpDist;
                 }
             }
         }
@@ -235,7 +246,7 @@ public class TicTacToe {
             currentView += " " + checkVisibleFromXY(i, SIZE - 1);   // passing through the cells of the last column
             win |= currentView.contains(winX_Sequence);
             win |= currentView.contains(winO_Sequence);
-            fullMap &= count_X_InString(currentView) == 0;
+            fullMap &= countInString(currentView, DOT_EMPTY) == 0;
         }
         return win ? 1 : fullMap ? 2 : 0;
     }
