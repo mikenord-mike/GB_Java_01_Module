@@ -1,7 +1,7 @@
 package ru.gb.mikenord.homework06;
 
 public class Dog extends Animal {
-    public static int dogCount = 0;
+    private static int dogCount = 0;
 
     public Dog(String name) {
         super(name);

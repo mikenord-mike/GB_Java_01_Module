@@ -1,7 +1,7 @@
 package ru.gb.mikenord.homework06;
 
 public abstract class Animal {
-    public static int animalCount = 0;
+    private static int animalCount = 0;
     private String name;
 
     public Animal(String name) {
