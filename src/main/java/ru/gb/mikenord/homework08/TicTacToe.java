@@ -1,54 +1,263 @@
 package ru.gb.mikenord.homework08;
 
-import java.util.Scanner;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class TicTacToe {
-    public static char[][] map;
-    public static final int SIZE = 5;
-    public static final int DOTS_TO_WIN = 4;
-    public static final char DOT_EMPTY = '*';
-    public static final char DOT_CHECKED = '+';
-    public static final char DOT_X = 'X';
-    public static final char DOT_O = 'O';
-    public static String winX_Sequence = "";
-    public static String winO_Sequence = "";
+    static char[][] map;
+    static int SIZE;
+    static int DOTS_TO_WIN;
+    static final char DOT_EMPTY = '*';
+    static final char DOT_CHECKED = '+';
+    static final char DOT_X = 'X';
+    static final char DOT_O = 'O';
+    static String winX_Sequence = "";
+    static String winO_Sequence = "";
 
-    private static final String ANSI_RESET = "\u001B[0m";
-    private static final String ANSI_YELLOW = "\u001B[33m";
-    private static final String ANSI_CYAN = "\u001B[36m";
-    private static final String ANSI_WHITE = "\u001B[37m";
-    private static final String ANSI_BLUE = "\u001B[34m";
-    private static final String ANSI_BRIGHT_RED = "\u001B[91m";
-    private static final String ANSI_BRIGHT_YELLOW = "\u001B[93m";
-    private static final String ANSI_BRIGHT_CYAN = "\u001B[96m";
+    static JFrame frame;
+    static JPanel mailLabelPanel;
+    static JPanel startBtnAndEndLabelPanel;
+    static JLabel mainLabel;
+    static JPanel gameBoardPanel;
+    static JButton[][] boardBtn;
+    static int screenV;
+    static int screenH;
+    static final int WINDOW_INIT_WIDTH = 500;
+    static final int WINDOW_INIT_HEIGHT = 500;
+    static final int WINDOW_BOARD_WIDTH = 375;
+    static final int WINDOW_BOARD_HEIGHT = 500;
+    static final Font FONT_SIZE_15 = new Font("TimesRoman", Font.PLAIN, 15);
+    static final Font FONT_SIZE_20 = new Font("TimesRoman", Font.PLAIN, 20);
+    static final Font FONT_SIZE_20_BOLD = new Font("TimesRoman", Font.BOLD, 20);
+    static final Font FONT_SIZE_25 = new Font("TimesRoman", Font.PLAIN, 25);
+    static final Font FONT_SIZE_35 = new Font("TimesRoman", Font.PLAIN, 35);
+    static final Font FONT_END_LABEL = new Font("TimesRoman", Font.BOLD, 35);
+    static Font FONT_BOARD_BUTTON;
+    static int xTurn, yTurn;
+    static boolean turn_X = true; //    true - if human turn
 
     public static void main(String[] args) {
-        initMap();
-        printMap();
-        while (true) {
-            int checkTurn;
-            humanTurn();
-            printMap();
-            checkTurn = checkMap();
-            if (checkTurn == 1) {
-                System.out.println(ANSI_BRIGHT_CYAN + "Победил человек" + ANSI_RESET);
-                break;
-            } else if (checkTurn == 2) {
-                System.out.println(ANSI_BLUE + "Ничья" + ANSI_RESET);
-                break;
-            }
-            aiTurn();
-            printMap();
-            checkTurn = checkMap();
-            if (checkTurn == 1) {
-                System.out.println(ANSI_BRIGHT_YELLOW + "Победил Квазиискуственный Интеллект" + ANSI_RESET);
-                break;
-            } else if (checkTurn == 2) {
-                System.out.println(ANSI_BLUE + "Ничья" + ANSI_RESET);
-                break;
-            }
+        startGameGUI();
+    }
+
+    static void startGameGUI() {
+
+        Dimension sSize = Toolkit.getDefaultToolkit().getScreenSize();
+        screenV = sSize.height;
+        screenH = sSize.width;
+
+        // Creating a main frame
+        frame = new JFrame("Крестики-нолики");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false);
+        frame.setBounds(screenH / 2 - WINDOW_INIT_WIDTH / 2, screenV / 2 - WINDOW_INIT_HEIGHT / 2,
+                WINDOW_INIT_WIDTH, WINDOW_INIT_HEIGHT);
+
+        // Creating a top panel and top label
+
+        mailLabelPanel = new JPanel();
+        mailLabelPanel.setLayout(new GridLayout(2, 1));
+        mainLabel = new JLabel("Выберите размер поля и длину выигрышной последовательности:",
+                SwingConstants.CENTER);
+        mainLabel.setFont(FONT_SIZE_15);
+        mailLabelPanel.add(mainLabel);
+        mailLabelPanel.add(new JLabel(" "));
+
+        //  Creating a start panel
+        JPanel startPanel = new JPanel();
+        startPanel.setLayout(new GridLayout(1, 2, 60, 50));
+
+        // Creating a panel for selecting the field size
+        JPanel fieldPanel = new JPanel();
+        fieldPanel.setLayout(new GridLayout(6, 1, 20, 20));
+        JLabel fieldLabel = new JLabel("Размер поля", SwingConstants.CENTER);
+        fieldLabel.setFont(FONT_SIZE_20_BOLD);
+        fieldPanel.add(fieldLabel);
+
+        //  Creating a group of toggle buttons to select the field size
+        JToggleButton[] fieldBtn = new JToggleButton[5];
+        ButtonGroup fieldGroup = new ButtonGroup();
+        for (int i = 0; i < 5; i++) {
+            fieldBtn[i] = new JToggleButton((i + 3) + " x " + (i + 3));
+            fieldBtn[i].setName(String.valueOf(i));
+            fieldBtn[i].setFont(FONT_SIZE_35);
+            fieldGroup.add(fieldBtn[i]);
+            fieldPanel.add(fieldBtn[i]);
         }
-        System.out.println("Игра закончена");
+        startPanel.add(fieldPanel);
+
+        //  Creating a panel to select the length of the winning sequence
+        JPanel winPanel = new JPanel();
+        winPanel.setLayout(new GridLayout(6, 1, 20, 20));
+        JLabel winLabel = new JLabel("Победа при :", SwingConstants.CENTER);
+        winLabel.setFont(FONT_SIZE_20_BOLD);
+        winPanel.add(winLabel);
+
+        //  Creating a group of toggle buttons to select the winning sequence
+        JToggleButton[] winBtn = new JToggleButton[5];
+        ButtonGroup winGroup = new ButtonGroup();
+        StringBuilder winSeq = new StringBuilder("XXX");
+        for (int i = 0; i < 5; i++) {
+            winBtn[i] = new JToggleButton(winSeq + "  (" + (i + 3) + ")");
+            winBtn[i].setName(String.valueOf(i));
+            winBtn[i].setFont(FONT_SIZE_25);
+            winBtn[i].setAlignmentX(Component.RIGHT_ALIGNMENT);
+            winGroup.add(winBtn[i]);
+            winPanel.add(winBtn[i]);
+            winSeq.append("X");
+        }
+        startPanel.add(winPanel);
+
+        //  Listener for field size selection toggle button events
+        ActionListener fieldBtnListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JToggleButton btn = (JToggleButton) e.getSource();
+                int fieldIndex = Integer.parseInt(btn.getName());
+                for (int i = 0; i < 5; i++) {
+                    winBtn[i].setVisible(i <= fieldIndex);
+                }
+                SIZE = fieldIndex + 3;
+                winBtn[fieldIndex].doClick();
+            }
+        };
+        //  Listener for winning sequence selection toggle button events
+        ActionListener winBtnListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JToggleButton btn = (JToggleButton) e.getSource();
+                DOTS_TO_WIN = Integer.parseInt(btn.getName()) + 3;
+            }
+        };
+
+        //  Adding a listener to the field size and sequence selection toggle buttons
+        for (int i = 0; i < 5; i++) {
+            winBtn[i].addActionListener(winBtnListener);
+            fieldBtn[i].addActionListener(fieldBtnListener);
+        }
+
+        //  Start button and the panel for it
+        startBtnAndEndLabelPanel = new JPanel();
+        startBtnAndEndLabelPanel.setLayout(new GridLayout(2, 1));
+        startBtnAndEndLabelPanel.add(new JLabel(" "));
+
+        JButton startGameBtn = new JButton("Старт игры");
+        startGameBtn.setFont(FONT_SIZE_25);
+        startBtnAndEndLabelPanel.add(startGameBtn);
+
+        //  Listener for start button
+        //      - disabling the start panel
+        //      - creating a game panel and an array of buttons
+        //      - replacing the start button with a label for the end of the game
+        //      - reshaping the window for the game process
+        ActionListener startBtnListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                initMap();
+                frame.remove(startPanel);
+                frame.remove(startGameBtn);
+                //  Метка для окончания игры
+                JLabel endLabel = new JLabel("", SwingConstants.CENTER);
+                endLabel.setFont(FONT_END_LABEL);
+
+                gameBoardPanel = new JPanel();
+                gameBoardPanel.setLayout(new GridLayout(SIZE, SIZE, 10, 10));
+                boardBtn = new JButton[SIZE][SIZE];
+                //  Setting the font size for buttons depending on the field size
+                int tmpFontSize = 0;
+                switch (SIZE) {
+                    case 3:
+                        tmpFontSize = 95;
+                        break;
+                    case 4:
+                        tmpFontSize = 58;
+                        break;
+                    case 5:
+                        tmpFontSize = 38;
+                        break;
+                    case 6:
+                        tmpFontSize = 21;
+                        break;
+                    case 7:
+                        tmpFontSize = 10;
+                }
+                FONT_BOARD_BUTTON = new Font("TimesRoman", Font.BOLD, tmpFontSize);
+
+                for (int i = 0; i < SIZE; i++) {
+                    for (int j = 0; j < SIZE; j++) {
+                        boardBtn[i][j] = new JButton("");
+                        boardBtn[i][j].setFont(FONT_BOARD_BUTTON);
+                        boardBtn[i][j].setFocusPainted(false);
+                        boardBtn[i][j].setName(i + "-" + j);
+                        gameBoardPanel.add(boardBtn[i][j]);
+                    }
+                }
+
+                //  Listener for an array of buttons
+                //      - calculates the coordinates of the clicked button
+                //      - starts calculating the turn
+                ActionListener boardBtnListener = new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        JButton tmpBtn = (JButton) e.getSource();
+                        String tmpStr = tmpBtn.getName();
+                        xTurn = Integer.parseInt(tmpStr.split("-")[0]);
+                        yTurn = Integer.parseInt(tmpStr.split("-")[1]);
+                        boardBtn[xTurn][yTurn].setText(turn_X ? "X" : "O");
+                        boardBtn[xTurn][yTurn].setEnabled(false);
+                        map[xTurn][yTurn] = turn_X ? DOT_X : DOT_O;
+
+                        int checkTurn;
+                        checkTurn = checkMap();
+                        if (checkTurn == 1) {
+                            endLabel.setForeground(turn_X ? Color.ORANGE : Color.RED);
+                            endLabel.setText(turn_X ? "Вы победили!" : "Вы проиграли!");
+                        } else if (checkTurn == 2) {
+                            endLabel.setForeground(Color.DARK_GRAY);
+                            endLabel.setText("-- ничья --");
+                        }
+                        turn_X = !turn_X;
+                        if (!turn_X) {
+                            aiTurn();
+                        }
+                    }
+                };
+
+                for (int i = 0; i < SIZE; i++) {
+                    for (int j = 0; j < SIZE; j++) {
+                        boardBtn[i][j].addActionListener(boardBtnListener);
+                    }
+                }
+
+                //  Preparing to display the game panel
+                frame.setVisible(false);
+
+                mainLabel.setText("поле " + SIZE + " x " + SIZE + ", выигрыш при " + DOTS_TO_WIN + " подряд");
+                mainLabel.setFont(FONT_SIZE_20);
+
+                frame.add(BorderLayout.CENTER, gameBoardPanel);
+
+                //  Replacing the start button with a label for messages about the end of the game
+                startBtnAndEndLabelPanel.remove(startGameBtn);
+                startBtnAndEndLabelPanel.add(endLabel);
+
+                frame.setBounds(screenH / 2 - WINDOW_BOARD_WIDTH / 2, screenV / 2 - WINDOW_BOARD_HEIGHT / 2,
+                        WINDOW_BOARD_WIDTH, WINDOW_BOARD_HEIGHT);
+                frame.setVisible(true);
+            }
+        };
+
+        startGameBtn.addActionListener(startBtnListener);
+
+        //  Preparing to display the start panel
+        frame.add(BorderLayout.NORTH, mailLabelPanel);
+        frame.add(BorderLayout.CENTER, startPanel);
+        frame.add(BorderLayout.SOUTH, startBtnAndEndLabelPanel);
+
+        fieldBtn[0].doClick();
+        frame.setVisible(true);
     }
 
     public static void initMap() {
@@ -61,28 +270,6 @@ public class TicTacToe {
             if (i < DOTS_TO_WIN) {
                 winX_Sequence += DOT_X;
                 winO_Sequence += DOT_O;
-            }
-        }
-    }
-
-    private static void humanTurn() {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            System.out.print("Введите координаты X в формате А1): ");
-            String s = scanner.nextLine().toUpperCase();
-            int y = s.charAt(0) - 'A';
-            int x = s.charAt(1) - '1';
-            if (x >= 0 && x < SIZE && y >= 0 && y < SIZE) {
-                if (map[x][y] == DOT_EMPTY) {
-                    map[x][y] = DOT_X;
-                    break;
-                } else if (map[x][y] == DOT_X) {
-                    System.out.println(ANSI_BRIGHT_RED + "Нельзя ходить повторно в одну и ту же клетку" + ANSI_RESET);
-                } else {
-                    System.out.println(ANSI_BRIGHT_RED + "Нальзя ходить в ячейку, занятую соперником" + ANSI_RESET);
-                }
-            } else {
-                System.out.println(ANSI_BRIGHT_RED + "Неправильный ввод, проверьте координаты" + ANSI_RESET);
             }
         }
     }
@@ -218,8 +405,7 @@ public class TicTacToe {
                 }
             }
         }
-        map[x][y] = DOT_O;
-        System.out.println("Компьютер походил в точку " + (char) ('A' + y) + (x + 1));
+        boardBtn[x][y].doClick();
     }
 
     public static int countInString(String s, char item) {
@@ -329,39 +515,5 @@ public class TicTacToe {
         }
 
         return result;
-    }
-
-    public static void printMap() {
-        String line = "    +";
-        for (int i = 0; i < SIZE; i++) {
-            line += "---+";
-        }
-        System.out.print("\n   ");
-        for (char i = 'A'; i < 'A' + SIZE; i++) {
-            System.out.print("   " + i);
-        }
-
-        System.out.println();
-        for (int i = 0; i < SIZE; i++) {
-            System.out.println(line);
-            System.out.print(" " + (i + 1) + "  |");
-            for (int j = 0; j < SIZE; j++) {
-                System.out.print(getColorCode(map[i][j]) + " " + map[i][j] + ANSI_RESET + " |");
-            }
-            System.out.println();
-        }
-        System.out.println(line);
-    }
-
-    private static String getColorCode(char i) {
-        switch (i) {
-            case DOT_EMPTY:
-                return ANSI_WHITE;
-            case DOT_X:
-                return ANSI_CYAN;
-            case DOT_O:
-                return ANSI_YELLOW;
-        }
-        return null;
     }
 }
